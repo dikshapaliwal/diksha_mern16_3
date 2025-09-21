@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Simple To-Do List</title>
+  <style>
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:#f6f7fb;display:flex;align-items:center;justify-content:center;height:100vh}
+    .app{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 24px rgba(20,20,40,.08);width:420px}
+    h1{margin:0 0 12px;font-size:20px}
+    form{display:flex;gap:8px}
+    input[type=text]{flex:1;padding:10px;border-radius:8px;border:1px solid #e6eef8}
+    button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+    ul{list-style:none;padding:0;margin-top:12px}
+    li{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;border:1px solid #f1f5f9;margin-bottom:8px}
+    .meta{display:flex;align-items:center;gap:8px}
+    .completed{text-decoration:line-through;opacity:.6}
+    .controls button{margin-left:6px}
+    .small{font-size:12px;padding:6px}
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="To-do list">
+    <h1>To‑Do List</h1>
+    <form id="taskForm">
+      <input id="taskInput" type="text" placeholder="Add a new task" required>
+      <button type="submit">Add</button>
+    </form>
+    <div style="margin-top:10px">
+      <button id="clearCompleted" class="small">Clear completed</button>
+      <button id="clearAll" class="small">Clear all</button>
+    </div>
+    <ul id="list"></ul>
+  </div>
+
+  <script>
+    (function(){
+      const listEl = document.getElementById('list');
+      const form = document.getElementById('taskForm');
+      const input = document.getElementById('taskInput');
+      const clearCompletedBtn = document.getElementById('clearCompleted');
+      const clearAllBtn = document.getElementById('clearAll');
+
+      let tasks = JSON.parse(localStorage.getItem('simple_tasks') || '[]');
+
+      function save(){
+        localStorage.setItem('simple_tasks', JSON.stringify(tasks));
+      }
+
+      function render(){
+        listEl.innerHTML = '';
+        tasks.forEach(task => {
+          const li = document.createElement('li');
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = task.done;
+          checkbox.addEventListener('change', ()=>{
+            toggleDone(task.id);
+          });
+
+          const span = document.createElement('span');
+          span.textContent = task.text;
+          if (task.done) span.classList.add('completed');
+
+          meta.appendChild(checkbox);
+          meta.appendChild(span);
+
+          const controls = document.createElement('div');
+          controls.className = 'controls';
+
+          const editBtn = document.createElement('button');
+          editBtn.textContent = 'Edit';
+          editBtn.className = 'small';
+          editBtn.addEventListener('click', ()=> editTask(task.id));
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'Delete';
+          delBtn.className = 'small';
+          delBtn.addEventListener('click', ()=> deleteTask(task.id));
+
+          controls.appendChild(editBtn);
+          controls.appendChild(delBtn);
+
+          li.appendChild(meta);
+          li.appendChild(controls);
+          listEl.appendChild(li);
+        });
+      }
+
+      function addTask(text){
+        const task = { id: Date.now().toString(), text: text.trim(), done: false };
+        tasks.unshift(task);
+        save(); render();
+      }
+
+      function deleteTask(id){
+        tasks = tasks.filter(t => t.id !== id);
+        save(); render();
+      }
+
+      function editTask(id){
+        const t = tasks.find(x=>x.id===id);
+        if (!t) return;
+        const newText = prompt('Edit task', t.text);
+        if (newText === null) return;
+        t.text = newText.trim() || t.text;
+        save(); render();
+      }
+
+      function toggleDone(id){
+        const t = tasks.find(x=>x.id===id);
+        if (!t) return;
+        t.done = !t.done;
+        save(); render();
+      }
+
+      clearCompletedBtn.addEventListener('click', ()=>{
+        tasks = tasks.filter(t=>!t.done);
+        save(); render();
+      });
+
+      clearAllBtn.addEventListener('click', ()=>{
+        if (!confirm('Clear ALL tasks?')) return;
+        tasks = [];
+        save(); render();
+      });
+
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        if (!input.value.trim()) return;
+        addTask(input.value);
+        input.value = '';
+        input.focus();
+      });
+    })();
+    render();
+  </script>
+</body>
+</html>

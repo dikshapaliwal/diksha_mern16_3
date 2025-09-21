@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Simple Calculator</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--accent:#2b6cb0}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);display:flex;align-items:center;justify-content:center;height:100vh}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 24px rgba(20,20,40,.08);width:320px}
+    .display{background:#0b1220;color:#e6eef8;padding:14px;border-radius:8px;font-size:28px;text-align:right;overflow:hidden}
+    .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+    button{padding:14px;border-radius:8px;border:0;font-size:18px;cursor:pointer}
+    button.op{background:#eef2ff}
+    button.num{background:#f7fafc}
+    button.func{background:#ffecec}
+    .wide{grid-column:span 2}
+  </style>
+</head>
+<body>
+  <div class="card" role="application" aria-label="Simple calculator">
+    <div id="display" class="display">0</div>
+    <div class="keys">
+      <button class="func" data-fn="clear">C</button>
+      <button class="func" data-fn="back">⌫</button>
+      <button class="op" data-value="%">%</button>
+      <button class="op" data-value="/">÷</button>
+
+      <button class="num" data-value="7">7</button>
+      <button class="num" data-value="8">8</button>
+      <button class="num" data-value="9">9</button>
+      <button class="op" data-value="*">×</button>
+
+      <button class="num" data-value="4">4</button>
+      <button class="num" data-value="5">5</button>
+      <button class="num" data-value="6">6</button>
+      <button class="op" data-value="-">−</button>
+
+      <button class="num" data-value="1">1</button>
+      <button class="num" data-value="2">2</button>
+      <button class="num" data-value="3">3</button>
+      <button class="op" data-value="+">+</button>
+
+      <button class="num wide" data-value="0">0</button>
+      <button class="num" data-value=".">.</button>
+      <button class="op" data-fn="equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const displayEl = document.getElementById('display');
+      let expression = ''; 
+
+      function updateDisplay(text){
+        displayEl.textContent = text || '0';
+      }
+
+      function sanitizeForEval(expr){
+        return expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+      }
+
+      function appendValue(v){
+        if (v === '.'){
+          const parts = expression.split(/[+\-*/%]/);
+          if (parts[parts.length-1].includes('.')) return;
+        }
+        expression += v;
+        updateDisplay(expression);
+      }
+
+      function clearAll(){ expression = ''; updateDisplay('0'); }
+
+      function backspace(){ expression = expression.slice(0,-1); updateDisplay(expression || '0'); }
+
+      function compute(){
+        if (!expression) return;
+        try{
+          // handle percent: transform '50%' -> '(50/100)'
+          const exprWithPercent = expression.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+          const sanitized = sanitizeForEval(exprWithPercent);
+          // use Function instead of eval for slightly safer evaluation
+          const result = Function('return (' + sanitized + ')')();
+          expression = String(result);
+          updateDisplay(expression);
+        }catch(e){
+          updateDisplay('Error');
+          expression = '';
+        }
+      }
+
+      document.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const v = btn.getAttribute('data-value');
+          const fn = btn.getAttribute('data-fn');
+          if (fn){
+            if (fn === 'clear') clearAll();
+            else if (fn === 'back') backspace();
+            else if (fn === 'equals') compute();
+            return;
+          }
+          if (v) appendValue(v);
+        });
+      });
+
+      window.addEventListener('keydown', (e)=>{
+        if ((e.key >= '0' && e.key <= '9') || e.key === '.') appendValue(e.key);
+        else if (['+','-','*','/','%'].includes(e.key)) appendValue(e.key);
+        else if (e.key === 'Enter') { e.preventDefault(); compute(); }
+        else if (e.key === 'Backspace') backspace();
+        else if (e.key === 'Escape') clearAll();
+      });
+    })();
+  </script>
+</body>
+</html>
+
