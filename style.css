@@ -1,0 +1,64 @@
+:root {
+  --bg: #f6f7fb;
+  --card: #fff;
+  --accent: #2b6cb0;
+}
+
+body {
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+  margin: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.card {
+  background: var(--card);
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(20, 20, 40, .08);
+  width: 320px;
+}
+
+.display {
+  background: #0b1220;
+  color: #e6eef8;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 28px;
+  text-align: right;
+  overflow: hidden;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+button {
+  padding: 14px;
+  border-radius: 8px;
+  border: 0;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+button.op {
+  background: #eef2ff;
+}
+
+button.num {
+  background: #f7fafc;
+}
+
+button.func {
+  background: #ffecec;
+}
+
+.wide {
+  grid-column: span 2;
+}
